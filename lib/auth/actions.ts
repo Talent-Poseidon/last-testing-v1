@@ -87,9 +87,15 @@ export async function signUpWithEmail(formData: FormData) {
   }
 }
 
-export async function signInWithGoogle() {
+export async function signInWithGoogle(): Promise<{ error?: string } | undefined> {
   console.log("[auth:action] signInWithGoogle called", { timestamp: new Date().toISOString() });
-  await signIn("google", { redirectTo: "/dashboard" });
+  try {
+    await signIn("google", { redirectTo: "/dashboard" });
+    return undefined;
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Google sign-in failed";
+    return { error: message };
+  }
 }
 
 export async function signOutAction() {

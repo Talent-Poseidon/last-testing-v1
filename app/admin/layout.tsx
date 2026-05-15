@@ -21,9 +21,9 @@ export default async function AdminLayout({
 
   const profile = {
     id: session.user.id,
-    email: session.user.email,
-    full_name: session.user.name,
-    avatar_url: session.user.image,
+    email: session.user.email ?? null,
+    full_name: session.user.name ?? null,
+    avatar_url: session.user.image ?? null,
     role: session.user.role,
     is_approved: session.user.is_approved,
     provider: session.user.provider || "email",

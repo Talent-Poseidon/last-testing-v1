@@ -122,3 +122,88 @@ model ScenarioKamus {
 
   @@id([scenarioId, kamusId])
 }
+
+// Project Management Models
+model Project {
+  id            String   @id @default(cuid())
+  name          String
+  description   String   @db.Text
+  configuration String   @db.Text // JSON config (e.g. {"kamusId":"...","standarJabatanId":"..."})
+  status        String   @default("draft") // "draft" | "submitted"
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  createdBy     String?
+
+  batches   Batch[]
+  assessors ProjectAssessor[]
+  events    ProjectEvent[]
+}
+
+model Batch {
+  id        String   @id @default(cuid())
+  projectId String
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project      Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  participants Participant[]
+}
+
+model Participant {
+  id        String   @id @default(cuid())
+  batchId   String
+  name      String
+  email     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  batch       Batch        @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  invitations Invitation[]
+}
+
+model Invitation {
+  id            String    @id @default(cuid())
+  participantId String
+  status        String    @default("sent") // "sent" | "accepted" | "expired"
+  sentAt        DateTime  @default(now())
+  expiresAt     DateTime
+  acceptedAt    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  participant Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+}
+
+// Master data of available assessors
+model Assessor {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  expertise String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  projects ProjectAssessor[]
+}
+
+model ProjectAssessor {
+  projectId  String
+  assessorId String
+  assignedAt DateTime @default(now())
+
+  project  Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assessor Assessor @relation(fields: [assessorId], references: [id])
+
+  @@id([projectId, assessorId])
+}
+
+model ProjectEvent {
+  id         String   @id @default(cuid())
+  projectId  String?
+  type       String   // "Submit Project" | "Assessee Notified" | "Assessor Assigned"
+  payload    String   @db.Text
+  occurredAt DateTime @default(now())
+
+  project Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
