@@ -60,3 +60,65 @@ model VerificationToken {
 
   @@unique([identifier, token])
 }
+
+// Master Data: Kamus (Dictionary of potensi & kompetensi)
+model Kamus {
+  id                   String   @id @default(cuid())
+  code                 String   @unique
+  name                 String
+  type                 String   // "potensi" | "kompetensi"
+  description          String   @db.Text
+  behavioralIndicators String   @db.Text
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  createdBy            String?
+  updatedBy            String?
+
+  standarJabatans StandarJabatanKamus[]
+  scenarios       ScenarioKamus[]
+}
+
+model KamusEvent {
+  id         String   @id @default(cuid())
+  type       String   // "Kamus Submitted"
+  payload    String   @db.Text
+  occurredAt DateTime @default(now())
+}
+
+// Lightweight placeholder models to enforce kamus deletion-rejection.
+// Full Standar Jabatan & Scenario epics will expand these later.
+model StandarJabatan {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+
+  kamus StandarJabatanKamus[]
+}
+
+model StandarJabatanKamus {
+  standarJabatanId String
+  kamusId          String
+  expectedLevel    Int            @default(1)
+  standarJabatan   StandarJabatan @relation(fields: [standarJabatanId], references: [id], onDelete: Cascade)
+  kamus            Kamus          @relation(fields: [kamusId], references: [id])
+
+  @@id([standarJabatanId, kamusId])
+}
+
+model Scenario {
+  id        String   @id @default(cuid())
+  name      String
+  type      String   @default("simulation")
+  createdAt DateTime @default(now())
+
+  kamus ScenarioKamus[]
+}
+
+model ScenarioKamus {
+  scenarioId String
+  kamusId    String
+  scenario   Scenario @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
+  kamus      Kamus    @relation(fields: [kamusId], references: [id])
+
+  @@id([scenarioId, kamusId])
+}

@@ -58,7 +58,59 @@ async function main() {
     },
   });
 
-  console.log({ originalAdmin, testAdmin, testUser });
+  // Seed Kamus for E2E tests
+  const seedKamus1 = await prisma.kamus.upsert({
+    where: { code: 'SEED-POT-001' },
+    update: {},
+    create: {
+      id: 'seed-kamus-1',
+      code: 'SEED-POT-001',
+      name: 'Seed Potensi Analytical',
+      type: 'potensi',
+      description: 'Seed potensi entry for E2E tests',
+      behavioralIndicators: 'Indicator A; Indicator B',
+    },
+  });
+
+  const seedKamus2 = await prisma.kamus.upsert({
+    where: { code: 'SEED-KOMP-001' },
+    update: {},
+    create: {
+      id: 'seed-kamus-2',
+      code: 'SEED-KOMP-001',
+      name: 'Seed Kompetensi Leadership',
+      type: 'kompetensi',
+      description: 'Seed kompetensi entry for E2E tests',
+      behavioralIndicators: 'Indicator X; Indicator Y',
+    },
+  });
+
+  // Seed StandarJabatan + reference to seedKamus2 to enforce deletion-rejection
+  const seedStandar = await prisma.standarJabatan.upsert({
+    where: { id: 'seed-standar-1' },
+    update: {},
+    create: {
+      id: 'seed-standar-1',
+      name: 'Seed Standar Jabatan',
+    },
+  });
+
+  await prisma.standarJabatanKamus.upsert({
+    where: {
+      standarJabatanId_kamusId: {
+        standarJabatanId: 'seed-standar-1',
+        kamusId: seedKamus2.id,
+      },
+    },
+    update: {},
+    create: {
+      standarJabatanId: 'seed-standar-1',
+      kamusId: seedKamus2.id,
+      expectedLevel: 3,
+    },
+  });
+
+  console.log({ originalAdmin, testAdmin, testUser, seedKamus1, seedKamus2, seedStandar });
 }
 
 main()
