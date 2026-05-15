@@ -10,6 +10,7 @@ import {
   LogOut,
   ChevronDown,
   BookOpen,
+  FolderKanban,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -94,6 +95,18 @@ export function DashboardShell({ user, profile, children }: DashboardShellProps)
                 >
                   <BookOpen className="h-4 w-4" />
                   Kamus
+                </Link>
+                <Link
+                  data-testid="projects-nav-link"
+                  href="/admin/projects"
+                  className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                    pathname.startsWith("/admin/projects")
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  }`}
+                >
+                  <FolderKanban className="h-4 w-4" />
+                  Projects
                 </Link>
               </>
             )}

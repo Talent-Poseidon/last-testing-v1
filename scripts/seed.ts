@@ -110,7 +110,93 @@ async function main() {
     },
   });
 
-  console.log({ originalAdmin, testAdmin, testUser, seedKamus1, seedKamus2, seedStandar });
+  // Seed Assessor master data for E2E tests
+  const seedAssessor1 = await prisma.assessor.upsert({
+    where: { email: 'assessor1@example.com' },
+    update: {},
+    create: {
+      id: 'seed-assessor-1',
+      name: 'Seed Assessor One',
+      email: 'assessor1@example.com',
+      expertise: 'Leadership',
+    },
+  });
+
+  const seedAssessor2 = await prisma.assessor.upsert({
+    where: { email: 'assessor2@example.com' },
+    update: {},
+    create: {
+      id: 'seed-assessor-2',
+      name: 'Seed Assessor Two',
+      email: 'assessor2@example.com',
+      expertise: 'Analytical',
+    },
+  });
+
+  // Seed Project for E2E tests
+  const seedProject = await prisma.project.upsert({
+    where: { id: 'seed-project-1' },
+    update: {},
+    create: {
+      id: 'seed-project-1',
+      name: 'Seed Project Alpha',
+      description: 'Seed project entry for E2E tests',
+      configuration: JSON.stringify({ kamusId: 'seed-kamus-1', standarJabatanId: 'seed-standar-1' }),
+      status: 'submitted',
+    },
+  });
+
+  // Seed Batch for the seed project
+  const seedBatch = await prisma.batch.upsert({
+    where: { id: 'seed-batch-1' },
+    update: {},
+    create: {
+      id: 'seed-batch-1',
+      projectId: 'seed-project-1',
+      name: 'Batch 1',
+    },
+  });
+
+  // Seed Participant for invitation tests
+  const seedParticipant = await prisma.participant.upsert({
+    where: { id: 'seed-participant-1' },
+    update: {},
+    create: {
+      id: 'seed-participant-1',
+      batchId: 'seed-batch-1',
+      name: 'Seed Participant',
+      email: 'participant1@example.com',
+    },
+  });
+
+  // Seed an expired invitation for resend test
+  const expiredDate = new Date(Date.now() - 8 * 24 * 60 * 60 * 1000); // 8 days ago
+  const seedExpiredInvitation = await prisma.invitation.upsert({
+    where: { id: 'seed-invitation-expired-1' },
+    update: {},
+    create: {
+      id: 'seed-invitation-expired-1',
+      participantId: 'seed-participant-1',
+      status: 'expired',
+      sentAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000),
+      expiresAt: expiredDate,
+    },
+  });
+
+  console.log({
+    originalAdmin,
+    testAdmin,
+    testUser,
+    seedKamus1,
+    seedKamus2,
+    seedStandar,
+    seedAssessor1,
+    seedAssessor2,
+    seedProject,
+    seedBatch,
+    seedParticipant,
+    seedExpiredInvitation,
+  });
 }
 
 main()
