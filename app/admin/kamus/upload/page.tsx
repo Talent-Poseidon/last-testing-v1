@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 
 interface ParseErrorDetail {
@@ -21,6 +21,12 @@ interface DiffPayload {
   unchanged: number;
 }
 
+interface KamusItemSummary {
+  id: string;
+  code: string;
+  type: string;
+}
+
 export default function KamusUploadPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fileName, setFileName] = useState<string>("");
@@ -30,6 +36,18 @@ export default function KamusUploadPage() {
   const [preview, setPreview] = useState<DiffPayload | null>(null);
   const [errorDetails, setErrorDetails] = useState<ParseErrorDetail[]>([]);
   const [alert, setAlert] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [existingItems, setExistingItems] = useState<KamusItemSummary[]>([]);
+  const [existingLoading, setExistingLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    fetch("/api/kamus")
+      .then((r) => r.json())
+      .then((data: KamusItemSummary[]) => {
+        setExistingItems(Array.isArray(data) ? data : []);
+      })
+      .catch((err: Error) => console.error(err))
+      .finally(() => setExistingLoading(false));
+  }, []);
 
   const readFile = (file: File): Promise<string> =>
     new Promise((resolve, reject) => {
@@ -152,6 +170,14 @@ export default function KamusUploadPage() {
         <h1 className="text-2xl font-bold">Upload Kamus Template</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Upload CSV template untuk menambah atau memperbarui kamus potensi & kompetensi.
+        </p>
+        <p
+          data-testid="kamus-existing-count"
+          className="mt-2 text-xs text-muted-foreground"
+        >
+          {existingLoading
+            ? "Loading current kamus…"
+            : `Currently ${existingItems.length} item(s) in kamus.`}
         </p>
       </div>
 
